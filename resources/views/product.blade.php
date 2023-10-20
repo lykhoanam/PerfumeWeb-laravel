@@ -16,22 +16,22 @@
                 <div class="item active">
                     <img class="slider-img" src="{{asset('storage/img/item1.png')}}" alt="Chania">
                     <div class="carousel-caption">
-                    <h3>Los Angeles</h3>
-                    <p>LA is always so much fun!</p>
+                        <h3>LKN Perfume</h3>
+                        <p>LKN is always so much fun!</p>
                     </div>
                 </div>
                 <div class="item ">
                     <img class="slider-img" src="{{asset('storage/img/item2.png')}}" alt="Chania">
                     <div class="carousel-caption">
-                    <h3>Los Angeles</h3>
-                    <p>LA is always so much fun!</p>
+                        <h3>LKN Perfume</h3>
+                        <p>LKN is always so much fun!</p>
                     </div>
                 </div>
                 <div class="item ">
                     <img class="slider-img" src="{{asset('storage/img/item3.png')}}" alt="Chania">
                     <div class="carousel-caption">
-                    <h3>Los Angeles</h3>
-                    <p>LA is always so much fun!</p>
+                        <h3>LKN Perfume</h3>
+                        <p>LKN is always so much fun!</p>
                     </div>
                 </div>
 

@@ -1,3 +1,3 @@
-<div class="panel panel-default">
-    <div class="panel-footer">Panel footer</div>
-  </div>
+<div class="footer">
+    <p class="text-light mb-0">Copyright © Your Website 2017</p>
+</div>
