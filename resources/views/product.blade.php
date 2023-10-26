@@ -1,6 +1,20 @@
 @extends('master')
 @section('content')
 
+@if(isset($success) || isset($orderSuccess))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+    <script>
+        window.onload = function() {
+            Swal.fire({
+                icon: 'success',
+                title: '{{ $success }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+    </script>
+@endif
 <div class="custom-product">
         <div id="myCarousel" class="carousel slide" data-ride="carousel">
             <!-- Indicators -->

@@ -1,6 +1,6 @@
 @extends('master')
 @section('content')
-<form action="/orderplace" method="POST">
+<form id="checkoutForm" action="/orderplace" method="POST">
 @csrf
     <div class="container">
         <div class="row">
@@ -31,41 +31,44 @@
                     </table>
 
             </div>
-            <div class="col-sm-6" style="border:1px solid black;">
+            <div class="col-sm-6" style="border:1px solid black;padding: 30px;">
                     <div class="row">
                         <div class="col-sm-6">
-                            <p style="text-align:start">Địa chỉ</p>
+                            <strong style="text-align:start" >Địa chỉ</strong>
                         </div>
                         <div class="col-sm-6 form-group">
-                            <textarea placeholder="Enter your address..." name="address" class="form-control"> </textarea>
+                            <textarea placeholder="Enter your address..." style="resize:none" name="address" class="form-control"> </textarea>
 
                         </div>
                     </div>
+                    <hr style="border: none; border-top: 2px solid #eae0e0;">
                     <div class="row">
                         <div class="col-sm-6">
-                            <p style="text-align:start">Người Nhận</p>
+                            <strong style="text-align:start">Người Nhận</strong>
                         </div>
                         <div class="col-sm-6">
-                            <p style="text-align:end">Tên người nhận...</p>
-
+                            @foreach($products as $item)
+                                <h5 style="text-align:end">{{ $item->username }}</h5>
+                            @endforeach
                         </div>
                     </div>
+                    <hr style="border: none; border-top: 2px solid #eae0e0;">
                     <div class="row">
                         <div class="col-sm-6">
-                            <p style="text-align:start">Phương thức thanh toán</p>
+                            <strong style="text-align:start">Phương thức thanh toán</strong>
                         </div>
                         <div class="col-sm-6">
                             <p style="text-align:end"><input type="radio" value="Online" name="payment"><span>Online payment</span></p>
                             <p style="text-align:end"><input type="radio" value="Cash" name="payment"><span>Cash</span></p>
                         </div>
                     </div>
-
+                    <hr style="border: none; border-top: 2px solid #eae0e0;">
                     <div class="row">
                         <div class="col-sm-6">
-                            <p style="text-align:start">Ghi chú</p>
+                            <strong style="text-align:start">Ghi chú</strong>
                         </div>
                         <div class="col-sm-6 form-group">
-                            <textarea placeholder="Enter your message..." name="message" class="form-control"> </textarea>
+                            <textarea placeholder="Enter your message..." style="resize:none" name="message" class="form-control"> </textarea>
 
                         </div>
                     </div>
@@ -74,7 +77,7 @@
 
                     <div class="row">
                         <div class="col-sm-6">
-                            <p style="text-align:start">Tổng Cộng = </p>
+                            <strong style="text-align:start">Tổng Cộng = </strong>
                         </div>
                         <div class="col-sm-6">
                             <p style="text-align:end">₫{{$totalAmount}}</p>
@@ -99,8 +102,47 @@
         </div>
     </div>
 </form>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('checkoutForm').addEventListener('submit', function (event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
 
+        function validateForm() {
+            var address = document.getElementsByName('address')[0].value;
+            var payment = document.querySelector('input[name="payment"]:checked');
 
+            var isValid = true;
+
+            if (address.trim() === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Vui lòng nhập địa chỉ!!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }
+
+            if (!payment) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Vui lòng chọn phương thức thanh toán.!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }
+
+            return isValid;
+        }
+    });
+</script>
 
     <style>
         .thumbnail-image {

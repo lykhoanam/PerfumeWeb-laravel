@@ -24,7 +24,7 @@
 
     body {
         padding-top: 120px; /* Điều chỉnh giá trị này tương ứng với chiều cao của navbar */
-        text-align: center;
+        
         flex-direction: column;
         display:flex;
     }
@@ -217,5 +217,20 @@
                 disableOnInteraction: false,
             },
         });
-    </script>
+
+</script>
+
+<script>
+    var swiper = new Swiper(".mySwiper1", {
+            autoHeight: true,
+            slidesPerView: 2,
+            spaceBetween: 30,
+            height: 100,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+        });
+
+</script>
 </html>

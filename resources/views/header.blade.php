@@ -37,7 +37,7 @@ $total = $productController->cartItem();
                 @if(Session::has('user'))
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <span class="glyphicon glyphicon-user"></span> {{Session::get('user')['username']}}<span class="caret"></a>
+                        <span class="glyphicon glyphicon-user"></span> {{Session::get('user')['name']}}<span class="caret"></a>
                     <ul class="dropdown-menu">
                         <li><a href="#"><span class="glyphicon glyphicon-pencil"></span> Hồ sơ cá nhân</a></li>
                         <li><a href="/myorder"><span class="glyphicon glyphicon-pencil"></span> Đơn mua</a></li>
@@ -50,7 +50,7 @@ $total = $productController->cartItem();
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> Đăng nhập</a></li>
-                        <li><a href="#"><span class="glyphicon glyphicon-pencil"></span> Đăng ký</a></li>
+                        <li><a href="/signup"><span class="glyphicon glyphicon-pencil"></span> Đăng ký</a></li>
                     </ul>
                 </li>
                 @endif
@@ -62,9 +62,9 @@ $total = $productController->cartItem();
                 <div class="collapse navbar-collapse" id="mainNav">
                     <ul id="navlist" class="nav nav-justified">
                         <li><a href="/forher">FOR HER</a></li>
-                        <li><a href="#">FOR HIM</a></li>
-                        <li><a href="#">UNISEX</a></li>
-                        <li><a href="#">GIFT SEX</a></li>
+                        <li><a href="/forhim">FOR HIM</a></li>
+                        <li><a href="/unisex">UNISEX</a></li>
+                        <li><a href="/giftset">GIFT SET</a></li>
                     </ul>
                 </div>
             </div>

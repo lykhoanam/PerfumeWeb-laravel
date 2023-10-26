@@ -7,8 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\OrderDetail;
 use Session;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentConfirmation;
 
 class ProductController extends Controller
 {
@@ -22,6 +25,24 @@ class ProductController extends Controller
     {
         $data = Product::where('category', 'forher')->get();
         return view('forher', ['products' => $data]);
+    }
+
+    function forHim()
+    {
+        $data = Product::where('category', 'forhim')->get();
+        return view('forhim', ['products' => $data]);
+    }
+
+    function uniSex()
+    {
+        $data = Product::where('category', 'unisex')->get();
+        return view('unisex', ['products' => $data]);
+    }
+
+    function giftSet()
+    {
+        $data = Product::where('category', 'giftset')->get();
+        return view('giftset', ['products' => $data]);
     }
 
     function detail($id){
@@ -63,7 +84,20 @@ class ProductController extends Controller
                 $cart->save();
             }
 
-            return redirect('/');
+            $success = "Thêm vào giỏi hàng thành công!!!";
+
+            // Lấy thông tin sản phẩm để có thể chuyển hướng đúng
+            $product = Product::find($productId);
+
+            // Kiểm tra nếu sản phẩm tồn tại
+            if ($product) {
+                // Tạo URL chi tiết sản phẩm và chuyển hướng đến đó
+               // $url = "/detail/{$product->id}";
+                return view('detail')->with(['success' => $success, 'products' => $product]);
+            } else {
+                // Nếu không tìm thấy sản phẩm, xử lý theo ý của bạn
+                return redirect('/'); // Chẳng hạn chuyển hướng về trang chính
+            }
         } else {
             return redirect('/login');
         }
@@ -135,7 +169,8 @@ class ProductController extends Controller
         foreach($selectedProductIds as $productId){
             $productId = DB::table('cart')
             ->join('products', 'cart.product_id', 'products.id')
-            ->select('products.id','products.name','products.price','cart.quantity','products.gallery','cart.id as cart_id')
+            ->join('users', 'cart.user_id', 'users.id')
+            ->select('products.id','products.name','products.price','cart.quantity','products.gallery','cart.id as cart_id','users.name as username')
             ->where('cart.product_id', $productId)
             ->first();  // Use first() to get a single result
 
@@ -160,6 +195,10 @@ class ProductController extends Controller
     function orderPlace(Request $req){
         $userId = Session::get('user')['id'];
         $allcart = Cart::where('user_id', $userId)->get();
+
+        $lastOrderId = OrderDetail::latest()->pluck('id')->first();
+        $newId = $lastOrderId + 1;
+
         foreach($allcart as $cart){
             $order = new Order;
             $order->product_id = $cart['product_id'];
@@ -171,10 +210,26 @@ class ProductController extends Controller
             $order->payment_status = "not yet";
             $order->message = $req->message;
             $order->save();
+
+            $orderDetail = new OrderDetail;
+            $orderDetail->id = $newId;
+
+            $orderDetail->order_id = $order->id;
+            $orderDetail->product_id = $cart->product_id;
+            $orderDetail->quantity = $cart->quantity;
+            $orderDetail->status = 0;
+            $orderDetail->save();
+
+            $product = Product::find($cart->product_id);
+            $product->quantity -= $cart->quantity;
+            $product->save();
         }
 
+
+        $orderSuccess = "Mua hàng thành công!!!!";
         Cart::where("user_id", $userId)->delete();
-        return redirect('/');
+
+        return view('product', ['success' => $orderSuccess]);
         //return $req->input();
     }
 
@@ -182,12 +237,43 @@ class ProductController extends Controller
         $userId = Session::get('user')['id'];
 
         $data = DB::table('orders')
-            ->join('products', 'orders.product_id', 'products.id')
-            ->select('products.id','products.name','products.price','products.gallery','orders.quantity','orders.status','orders.payment_method','orders.id','orders.purchase_date')
-            ->where('orders.user_id', $userId)
-            ->get();
+        ->join('products', 'orders.product_id', 'products.id')
+        ->join('order_details', 'orders.id', 'order_details.order_id') // Assuming there's a foreign key relationship between orders.id and order_details.order_id
+        ->select('products.id', 'products.name', 'products.price', 'products.gallery', 'orders.quantity', 'orders.payment_method', 'orders.id as order_id', 'orders.purchase_date','orders.payment_status' ,'order_details.*')
+        ->where('orders.user_id', $userId)
+        ->get();
+
 
         return view('myorder',['products'=> $data]);
     }
+
+    public function cancelOrder($orderDetailId)
+    {
+        // Find the order detail
+        $orderDetail = OrderDetail::find($orderDetailId);
+
+        if (!$orderDetail) {
+            // Handle the case where the order detail is not found
+            return redirect()->back()->with('error', 'Order detail not found.');
+        }
+
+        // Check if the order detail is cancellable (status is not 2 or 4)
+        if ($orderDetail->status == 2 || $orderDetail->status == 4) {
+            // Handle the case where the order detail is not cancellable
+            return redirect()->back()->with('error', 'Order detail is not cancellable.');
+        }
+
+        // Update the order detail status to 4 (cancelled)
+        $orderDetail->status = 4;
+        $orderDetail->save();
+
+        // Refund the product quantity
+        $product = Product::find($orderDetail->product_id);
+        $product->quantity += $orderDetail->quantity;
+        $product->save();
+
+        return redirect()->back()->with('success', 'Order cancelled successfully.');
+    }
+
 
 }

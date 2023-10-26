@@ -9,30 +9,6 @@
 <body>
 
       <div class="container ">
-        <!--<div class="row">
-            <div class="col-sm-3">
-                <h3>LKN Perfume</h3>
-                <div class="list-group pt-2 pb-4">
-                    <a href="#" class="text-primary list-group-item list-group-item-action">Category 1</a>
-                    <a href="#" class="text-primary list-group-item list-group-item-action">Category 2</a>
-                    <a href="#" class="text-primary list-group-item list-group-item-action">Category 3</a>
-
-                </div>
-            </div>
-            <div class="col-sm-9">
-                    <div class="swiper mySwiper1">
-                        <div class="swiper-wrapper">
-
-                            <div class='swiper-slide'><img loading="lazy" src="{{asset("storage/img/her1.jpg")}}"></div>
-                            <div class='swiper-slide'><img loading="lazy" src="{{asset("storage/img/her2.jpg")}}"></div>
-                            <div class='swiper-slide'><img loading="lazy" src="{{asset("storage/img/her3.jpg")}}"></div>
-                            <div class='swiper-slide'><img loading="lazy" src="{{asset("storage/img/unisex2.jpg")}}"></div>
-
-                        </div>
-                    </div>
-            </div>
-        </div>-->
-
         <div class="row">
             <div class="col-sm-3">
                 <h3>LKN Perfume</h3>
