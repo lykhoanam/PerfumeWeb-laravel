@@ -23,12 +23,11 @@
                     @foreach($products as $item)
                         <div class="col-sm-4">
                             <div class="card">
-                                <a href="detail/{{$item['id']}}">
+                                <a href="detail/{{$item['id']}}" style="text-decoration:none;">
                                     <img class="banner-image" src="{{ asset($item['gallery']) }}">
                                     <div class="card-body">
                                         <h4 class="card-title text-primary">{{$item['name']}}</h4>
                                         <h5>₫{{$item['price']}}</h5>
-                                        <p class="card-text">{{$item['description']}}</p>
                                     </div>
                                     <div class="card-footer"></div>
                                 </a>

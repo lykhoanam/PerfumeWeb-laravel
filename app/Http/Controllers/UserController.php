@@ -19,7 +19,7 @@ class UserController extends Controller
 
             $success = "Đăng nhập thành công !!!";
 
-            return view('product', ['success'=> $success]);
+            return redirect('product')->with('success', $success);
         }
     }
 
@@ -40,7 +40,7 @@ class UserController extends Controller
 
             $success = "Đăng ký thành công !!!";
 
-            return view('signup', ['success'=> $success]);
+            return redirect('login')->with('success', $success);
         }
 
 

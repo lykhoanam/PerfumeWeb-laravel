@@ -2,24 +2,11 @@
 
 @extends('master')
 @section('content')
-@if(isset($success))
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
-    <script>
-        window.onload = function() {
-            Swal.fire({
-                icon: 'success',
-                title: '{{ $success }}',
-                showConfirmButton: false,
-                timer: 2000
-            });
-        }
-    </script>
-@endif
 <div class="container custom-login bg-gray-100">
     <div class="row">
         <div class="col-sm-4 col-sm-offset-4">
-            <form action="signup" method="POST">
+            <form id='checkoutForm' action="signup" method="POST">
                 @csrf
                 <div class="form-group" style="text-align:start">
                     <label for="exampleInputEmail1">Tên người dùng</label>
@@ -52,5 +39,73 @@
         background-color: rgba(227, 222, 222, 0.4); /* Black w/ opacity */
     }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('checkoutForm').addEventListener('submit', function (event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
 
+        function validateForm() {
+
+            var pwd_conf = document.getElementsByName('password_confirm')[0].value;
+            var password = document.getElementsByName('password')[0].value;
+            var email = document.getElementsByName('email')[0].value;
+            var name = document.getElementsByName('name')[0].value;
+
+            var isValid = true;
+
+            if (name.trim() === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Vui lòng nhập tên!!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }else if (email.trim() === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Vui lòng nhập email!!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }else if (password.trim() === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Vui lòng nhập mật khẩu!!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }else if (pwd_conf.trim() === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Vui lòng nhập lại mật khẩu!!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }else if (pwd_conf.trim() != password.trim()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Mật khẩu không khớp!',
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+                isValid = false;
+            }
+
+            return isValid;
+        }
+    });
+</script>
 @endsection

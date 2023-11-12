@@ -1,6 +1,21 @@
 <!-- cartlist.blade.php -->
 @extends('master')
 @section('content')
+@if(Session::has('user'))
+    @if(session('success') || isset($success) || isset($orderSuccess))
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+        <script>
+            window.onload = function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: '{{ session('success') ?? $success ?? $orderSuccess }}',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+        </script>
+    @endif
 <style>
     .myDIV{
         display:none;
@@ -58,108 +73,24 @@
     .progressbar li.active + li:after {
         background-color: orange;
     }
+
+   
 </style>
 
-    <!--<body>
-
-    <div class="container">
-        <div class="row">
-                <table class="table cart-table">
-                    <thead>
-                        <tr>
-                            <th>Created ad</th>
-                            <th>ID Product</th>
-                            <th>Product</th>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Payment</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($products as $item)
-                            <tr>
-                                <td class="vertical">{{ $item->purchase_date }}</td>
-                                <td class="vertical">{{ $item->id }}</td>
-                                <td class="vertical"><img class="thumbnail-image" src="{{ asset($item->gallery) }}" alt="{{ $item->name }}"></td>
-                                <td class="vertical">{{ $item->name }}</td>
-                                <td class="vertical">{{ $item->quantity }}</td>
-                                <td class="vertical">₫{{ $item->price }}</td>
-                                <td class="vertical">₫{{ $item->price * $item->quantity }}</td>
-                                <td class="vertical">{{ $item->status }}</td>
-                                <td class="vertical">{{ $item->payment_method }}</td>
-
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-        </div>
-    </div>
-
-    <style>
-        .thumbnail-image {
-            max-width: 100px;
-            height: auto; /
-            display: block;
-            margin: auto;
-        }
-        .cart-table {
-            border: none;
-            width: 100%;
-        }
-        form{
-            width: 100%;
-        }
-
-        .cart-table th, .cart-table td {
-            border: none;
-            padding: 50px;
-            text-align: center;
-
-        }
-
-        .vertical{
-            vertical-align: middle;
-            margin-top: 10px;
-        }
-
-        div.sticky{
-            position: -webkit-sticky;
-            position: sticky;
-            bottom: 0;
-            background-color:white;
-        }
-
-    </style>
-
-
-
-    </body>
-
--->
-<style>
-    .thumbnail-image {
-        max-width: 100px;
-        height: auto; /
-        vertical-align: start;
-    }
-
-
-</style>
-
-<div class="container">
+<div class="slide-in-element" style="background-color:#f6eaea">
+    <img src="{{asset('storage/logo-brand/logo.jpg')}}" style="width:200px;height:200px;">
+    <h1>LKN Perfume</h1>
+</div>
+<div class="container" id="home">
 
     <div class="row">
 
         <div class="col-sm-3">
-            <div class="list-group pt-2 pb-4">
-                <a href="#" class="text-primary list-group-item list-group-item-action">Category 1</a>
-                <a href="#" class="text-primary list-group-item list-group-item-action">Category 2</a>
-                <a href="#" class="text-primary list-group-item list-group-item-action">Category 3</a>
-
+            <div class="list-group pt-2 pb-4" style="cursor:pointer;">
+                <a class="text-primary list-group-item list-group-item-action active" onclick="filterOrdersByStatus('all'); changeTab(this);">Tất cả đơn hàng</a>
+                <a class="text-primary list-group-item list-group-item-action" onclick="filterOrdersByStatus(1); changeTab(this);">Đơn đang xử lí</a>
+                <a class="text-primary list-group-item list-group-item-action" onclick="filterOrdersByStatus(2); changeTab(this);">Đơn hoàn thành</a>
+                <a class="text-primary list-group-item list-group-item-action" onclick="filterOrdersByStatus(3); changeTab(this);">Đơn đã hủy</a>
             </div>
         </div>
 
@@ -171,7 +102,7 @@
             @foreach($products as $orderDetail)
 
                 @if ($orderDetail->id !== $prevOrderDetailId)
-                <div class="row border-bottom mb-3 order ">
+                <div class="row border-bottom mb-3 order " data-status="{{ $orderDetail->status }}">
                     <div class="row">
                         <div class="col-sm-6">
                             <p>Order Detail ID: {{ $orderDetail->id }}</p>
@@ -201,7 +132,7 @@
                             <br>
                             phương thức thanh toán : {{ $item->payment_method }}<br>
                             trạng thái thanh toán : {{ $item->payment_status}}<br>
-                            ngày mua : {{$item->purchase_date}}<br>
+                            ngày mua : {{ \Carbon\Carbon::parse($item->purchase_date)->format('H:i:s d/m/Y') }}<br>
                         </div>
                     </div>
                         @endif
@@ -226,7 +157,7 @@
                                 </div>
 
                             </div>
-                        @elseif ($item->status == 1)
+                        @elseif ($orderDetail->status == 1)
                             <div class="row">
                                 <ul class="progressbar">
                                     <li class="active">Chờ xử lí </li>
@@ -234,7 +165,7 @@
                                     <li>Đã giao</li>
                                 </ul>
                             </div>
-                        @elseif ($item->status == 2)
+                        @elseif ($orderDetail->status == 2)
                             <div class="row">
                                 <ul class="progressbar">
                                     <li class="active">Chờ xử lí </li>
@@ -267,21 +198,46 @@
     </div>
 
 </div>
-<script>
-    /*function toggleDetails(orderDetailId) {
-        // Get all elements with class name 'myDIV'
-        var elements = document.getElementsByClassName('myDIV' + orderDetailId);
 
-        // Loop through each element and toggle its display property
-        for (var i = 0; i < elements.length; i++) {
-            if (elements[i].style.display === 'none') {
-                elements[i].style.display = 'block';
-            } else {
-                elements[i].style.display = 'none';
-            }
-        }
-    }*/
+<script>
+    function changeTab(element) {
+        var items = document.querySelectorAll(".list-group-item");
+        items.forEach(function(item) {
+            item.classList.remove("active");
+        });
+
+        element.classList.add("active");
+    }
 </script>
 
+<script>
+    function filterOrdersByStatus(status) {
+        var allOrders = document.querySelectorAll('.order');
+        allOrders.forEach(function(order) {
+            var orderStatus = order.getAttribute('data-status');
+            if (orderStatus === status.toString() || status === 'all') {
+                order.style.display = 'block';
+            } else {
+                order.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+
+@else
+<script>
+    window.onload = function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Please log in to view your orders',
+            showConfirmButton: false,
+            timer: 2000
+        }).then(function() {
+            window.location.href = '{{ route("login") }}';
+        });
+    }
+</script>
+@endif
 
 @endsection

@@ -1,7 +1,22 @@
 @extends('master')
 @section('content')
+@if(isset($success))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
+    <script>
+        window.onload = function() {
+            Swal.fire({
+                icon: 'success',
+                title: '{{ $success }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+    </script>
+@endif
 <div class="container custom-login">
+    <div class="row"></div>
+    <div class="row"></div>
     <div class="row">
         <div class="col-sm-4 col-sm-offset-4">
             <form action="login" method="POST">
@@ -23,7 +38,7 @@
                     <input type="checkbox" class="form-check-input" id="exampleCheck1">
                     <label class="form-check-label" for="exampleCheck1">Check me out</label>
                 </div>
-                <button style="align-items:flex-start" type="submit" class="btn btn-primary">Submit</button>
+                <button style="align-items:flex-start" type="submit" class="btn btn-primary form-control">Submit</button>
             </form>
         </div>
     </div>

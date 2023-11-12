@@ -3,16 +3,7 @@
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+
 
 Route::get('/login', function () {
     return view('login');
@@ -48,9 +39,10 @@ Route::get('/cartlist', function () {
 
 Route::get('/logout', function () {
     Session::forget('user');
-    return redirect('/');
+    return redirect('/product');
 });
 
+Route::get('/', [ProductController::class,'index']);
 
 
 
@@ -58,7 +50,7 @@ Route::post("/signup",[UserController::class,'signup']);
 
 Route::post("/login",[UserController::class,'login']);
 
-Route::get("/",[ProductController::class,'index']);
+Route::get("/product",[ProductController::class,'index']);
 
 Route::get('/forher', [ProductController::class, 'forHer']);
 
@@ -91,3 +83,10 @@ Route::get('myorder',[ProductController::class,'myOrder']);
 // routes/web.php
 
 Route::post('/cancel-order/{orderDetailId}', [ProductController::class,'cancelOrder'])->name('cancel.order');
+
+
+
+Route::any('/momo_payment',[ProductController::class,'momo_payment']);
+
+Route::any('/vnpay_payment',[ProductController::class,'vnpay_payment']);
+

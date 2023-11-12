@@ -5,7 +5,7 @@
 @if(count($products) > 0)
     <body>
 
-    <div class="container">
+    <div class="container" id="home">
         <div class="row">
 
             <form action="/checkout" method="POST" id="checkoutForm">
@@ -27,7 +27,7 @@
                                 <td class="vertical"><input type="checkbox" name="selected_products[]" value="{{ $item->id }}" class="product-checkbox"></td>
                                 <td class="vertical"><img class="thumbnail-image" src="{{ asset($item->gallery) }}" alt="{{ $item->name }}"></td>
                                 <td class="vertical">{{ $item->name }}</td>
-                                <td class="vertical"><input type="number" name="quantity" class="quantity-input" data-price="{{ $item->price }}" value="{{ $item->quantity }}"></td>
+                                <td class="vertical"><input type="number" name="quantity" min="1" class="quantity-input" data-price="{{ $item->price }}" value="{{ $item->quantity }}"></td>
                                 <td class="vertical">₫{{ $item->price }}</td>
                                 <td class="vertical"><a href="/removecart/{{ $item->cart_id }}" class="btn btn-warning">Remove from cart</a></td>
 
@@ -49,69 +49,48 @@
                         <th></th>
                         <th>Tổng sản phẩm: <span id="totalProducts">0</span></th>
                         <th>Tổng thanh toán: <span id="totalAmount">0</span></th>
-                        <th><button type="submit" form="checkoutForm" class="btn btn-warning" style="width:250px;height:50px;vertical-align:middle">Order</th>
+                        <th><button type="submit" form="checkoutForm" id="orderButton" class="btn btn-warning" style="width:250px;height:50px;vertical-align:middle">Order</th>
                     </tr>
 
             </table>
         </div>
 
-        <div class="row">
-            <h4 style="text-align:start">CÓ THỂ BẠN CŨNG THÍCH</h4>
-            @foreach($randomProducts as $randomProduct)
-                <div class="col-sm-2">
-                    <div class="card">
-                        <a href="detail/{{$randomProduct['id']}}">
-                            <img class="banner-image" src="{{ asset($randomProduct['gallery']) }}">
-                            <div class="card-body">
-                                <h4 class="card-title text-primary">{{$randomProduct['name']}}</h4>
-                                <h5>{{$randomProduct['price']}}đ</h5>
-                                <p class="card-text">{{$randomProduct['description']}}</p>
+
+        <div class="container">
+            <h4 class="divider">CÓ THỂ BẠN CŨNG THÍCH</h4><br>
+            <div class="row">
+                <div class="swiper mySwiper4">
+                    <div class="swiper-wrapper">
+                        @foreach($randomProducts as $randomProduct)
+                            <div class="swiper-slide">
+                                        <a href="detail/{{$randomProduct['id']}}">
+                                            <img src="{{ asset($randomProduct['gallery']) }}">
+                                        </a>
+
                             </div>
-                            <div class="card-footer"></div>
-                        </a>
+                        @endforeach
                     </div>
+                    <div class="swiper-button-next" style="color:black;"></div>
+                    <div class="swiper-button-prev" style="color:black;"></div>
                 </div>
-            @endforeach
+            </div>
         </div>
+
+
     </div>
 
-    <style>
-        .thumbnail-image {
-            max-width: 100px;
-            height: auto; /
-            display: block;
-            margin: auto;
-        }
-        .cart-table {
-            border: none;
-            width: 100%;
-        }
-        form{
-            width: 100%;
-        }
-
-        .cart-table th, .cart-table td {
-            border: none;
-            padding: 50px;
-            text-align: center;
-
-        }
-
-        .vertical{
-            vertical-align: middle;
-            margin-top: 10px;
-        }
-
-        div.sticky{
-            position: -webkit-sticky;
-            position: sticky;
-            bottom: 0;
-            background-color:white;
-        }
-
-    </style>
-
     <script>
+
+        var totalAmountElement = document.getElementById('totalAmount');
+        var orderButton = document.getElementById('orderButton');
+
+        function updateOrderButton() {
+            var totalAmount = parseFloat(totalAmountElement.innerHTML.replace(/[^\d.-]/g, ''));
+            orderButton.disabled = !(totalAmount > 0);
+        }
+
+        updateOrderButton();
+
 
         document.addEventListener('DOMContentLoaded', function () {
         var checkboxes = document.querySelectorAll('.product-checkbox');
@@ -122,6 +101,7 @@
         checkboxes.forEach(function (checkbox) {
             checkbox.addEventListener('change', function () {
                 calculateTotal();
+                updateOrderButton();
             });
         });
 
@@ -131,6 +111,7 @@
             });
 
             calculateTotal();
+            updateOrderButton();
         });
 
         function calculateTotal() {
@@ -149,7 +130,7 @@
                 }
             });
 
-            totalAmountElement.textContent = totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            totalAmountElement.textContent = totalAmount.toFixed(1).replace(/\d(?=(\d{3})+\.)/g, '$&,');
             totalProductsElement.textContent = checkedProducts;
             document.getElementById('selectedProductIds').value = selectedProductIds.join(',');
         }
@@ -157,7 +138,7 @@
 
     </script>
 
-    <script>
+<script>
         $('.quantity-input').on('change', function () {
     var productId = $(this).closest('tr').find('.product-checkbox').val();
     var quantity = $(this).val();
@@ -178,9 +159,9 @@
             console.error('Error updating cart:', error.responseJSON.message);
         }
     });
-});
+    });
 
-    </script>
+</script>
 
 
 
@@ -194,28 +175,26 @@
 @else
 
 
-    <div class="container">
+    <div class="container" id="home">
         <div class="row" style="padding: 180px;">
             <h3>Không có sản phẩm nào được tìm thấy. Hãy thêm sản phẩm vào...</h3>
         </div>
-        <hr style="border: 1px solid rgba(0, 0, 0, 0.1);">
+        <h4 class="divider">CÓ THỂ BẠN CŨNG THÍCH</h4><br>
         <div class="row">
-            <h4 style="text-align:start">CÓ THỂ BẠN CŨNG THÍCH</h4>
-            @foreach($randomProducts as $randomProduct)
-                <div class="col-sm-2">
-                    <div class="card">
-                        <a href="detail/{{$randomProduct['id']}}">
-                            <img class="banner-image" src="{{ asset($randomProduct['gallery']) }}">
-                            <div class="card-body">
-                                <h4 class="card-title text-primary">{{$randomProduct['name']}}</h4>
-                                <h5>{{$randomProduct['price']}}đ</h5>
-                                <p class="card-text">{{$randomProduct['description']}}</p>
-                            </div>
-                            <div class="card-footer"></div>
-                        </a>
-                    </div>
+            <div class="swiper mySwiper4">
+                <div class="swiper-wrapper">
+                    @foreach($randomProducts as $randomProduct)
+                        <div class="swiper-slide">
+                                    <a href="detail/{{$randomProduct['id']}}">
+                                        <img src="{{ asset($randomProduct['gallery']) }}">
+                                    </a>
+
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
+                <div class="swiper-button-next" style="color:black;"></div>
+                <div class="swiper-button-prev" style="color:black;"></div>
+            </div>
         </div>
     </div>
 

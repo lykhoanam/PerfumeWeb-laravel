@@ -2,23 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OrdersFake;
 use Auth;
+use Http;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\User;
 use App\Models\OrderDetail;
 use Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\PaymentConfirmation;
+use App\Mail\MailNotify;
 
 class ProductController extends Controller
 {
     //
     function index(){
-        $data = Product::all();
-        return view('product', ['products'=>$data]);
+
+        $user = Session::get('user');
+
+        if ($user && isset($user['id'])) {
+            $data = Product::all();
+            return view('product', ['products'=>$data]);
+        }
+
+        $data1 = Product::all();
+        return view('product', ['products'=>$data1]);
     }
 
     function forHer()
@@ -170,7 +181,7 @@ class ProductController extends Controller
             $productId = DB::table('cart')
             ->join('products', 'cart.product_id', 'products.id')
             ->join('users', 'cart.user_id', 'users.id')
-            ->select('products.id','products.name','products.price','cart.quantity','products.gallery','cart.id as cart_id','users.name as username')
+            ->select('products.id','products.name','products.price','cart.quantity','products.gallery','cart.id as cart_id','users.name as username','users.id as user_id')
             ->where('cart.product_id', $productId)
             ->first();  // Use first() to get a single result
 
@@ -179,6 +190,18 @@ class ProductController extends Controller
                 $total+= $productId->price * $productId->quantity;
             }
         }
+
+       /* foreach ($cartProducts as $product) {
+            OrdersFake::create([
+                'product_id' => $product->id,
+                'user_id' => $product->user_id, // Adjust as needed
+                'quantity' => $product->quantity,
+                'status' => 0, // Adjust as needed
+                // Other fields if needed
+            ]);
+        }*/
+
+        session(['cart' => $cartProducts]);
 
         return view('order',['products' => $cartProducts,'totalAmount' => $total]);
 
@@ -194,6 +217,8 @@ class ProductController extends Controller
 
     function orderPlace(Request $req){
         $userId = Session::get('user')['id'];
+        $user = User::find($userId);
+
         $allcart = Cart::where('user_id', $userId)->get();
 
         $lastOrderId = OrderDetail::latest()->pluck('id')->first();
@@ -225,13 +250,222 @@ class ProductController extends Controller
             $product->save();
         }
 
+        $address = $req->input('address');
+        $paymentMethod = $req->payment;
+        $message = $req->input('message');
+        $totalAmount = $req->input('totalAmount');
+
+        if($paymentMethod == 'Online'){
+            Mail::to($user->email)->send(new MailNotify("Vietcombank","1023770449",$address, $paymentMethod, $message, $totalAmount));
+        }
+
+
 
         $orderSuccess = "Mua hàng thành công!!!!";
         Cart::where("user_id", $userId)->delete();
 
-        return view('product', ['success' => $orderSuccess]);
+        return view('product',['success' => $orderSuccess]);
         //return $req->input();
     }
+
+
+    //Momo payment
+
+    public function momo_payment(Request $request){
+
+
+
+    $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
+
+
+    $partnerCode = 'MOMOBKUN20180529';
+    $accessKey = 'klm05TvNBzhg7h7j';
+    $secretKey = 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
+    $orderInfo = "Thanh toán qua MoMo";
+    $amount = "10000";
+    $orderId = time() ."";
+    $redirectUrl = "https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b";
+    $ipnUrl = "https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b";
+    $extraData = "";
+
+
+
+
+    $serectkey = $secretKey;
+
+
+
+    $requestId = time() . "";
+    $requestType = "payWithATM";
+    //before sign HMAC SHA256 signature
+    $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnUrl . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectUrl . "&requestId=" . $requestId . "&requestType=" . $requestType;
+    $signature = hash_hmac("sha256", $rawHash, $serectkey);
+    $data = array('partnerCode' => $partnerCode,
+        'partnerName' => "Test",
+        "storeId" => "MomoTestStore",
+        'requestId' => $requestId,
+        'amount' => $amount,
+        'orderId' => $orderId,
+        'orderInfo' => $orderInfo,
+        'redirectUrl' => $redirectUrl,
+        'ipnUrl' => $ipnUrl,
+        'lang' => 'vi',
+        'extraData' => $extraData,
+        'requestType' => $requestType,
+        'signature' => $signature);
+    $result = $this->execPostRequest($endpoint, json_encode($data));
+    $jsonResult = json_decode($result, true);
+
+
+
+
+    return redirect()->to($jsonResult['payUrl']);
+
+    }
+
+
+
+
+    function execPostRequest($url, $data)
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($data))
+        );
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        //execute post
+        $result = curl_exec($ch);
+        //close connection
+        curl_close($ch);
+        return $result;
+    }
+
+
+
+
+    public function vnpay_payment(Request $req){
+        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+        $vnp_Returnurl = "http://127.0.0.1:8000/product";
+        $vnp_TmnCode = "FK0N8JVO";//Mã website tại VNPAY
+        $vnp_HashSecret = "UTKZRGBGLNJSKVTGKSDOEVBZJPKTIRUB"; //Chuỗi bí mật
+
+        $vnp_TxnRef = rand(0, 10000); //Mã đơn hàng. Trong thực tế Merchant cần insert đơn hàng vào DB và gửi mã này sang VNPAY
+        $vnp_OrderInfo = 'Thanh toán VNPay';
+        $vnp_OrderType = 'billpayment';
+        $vnp_Amount = $req->totalAmount * 100;
+        $vnp_Locale = 'vn';
+        $vnp_BankCode = 'NCB';
+        $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
+        //Add Params of 2.0.1 Version
+        //$vnp_ExpireDate = $_POST['txtexpire'];
+        //Billing
+
+        $inputData = array(
+            "vnp_Version" => "2.1.0",
+            "vnp_TmnCode" => $vnp_TmnCode,
+            "vnp_Amount" => $vnp_Amount,
+            "vnp_Command" => "pay",
+            "vnp_CreateDate" => date('YmdHis'),
+            "vnp_CurrCode" => "VND",
+            "vnp_IpAddr" => $vnp_IpAddr,
+            "vnp_Locale" => $vnp_Locale,
+            "vnp_OrderInfo" => $vnp_OrderInfo,
+            "vnp_OrderType" => $vnp_OrderType,
+            "vnp_ReturnUrl" => $vnp_Returnurl,
+            "vnp_TxnRef" => $vnp_TxnRef,
+
+        );
+
+        if (isset($vnp_BankCode) && $vnp_BankCode != "") {
+            $inputData['vnp_BankCode'] = $vnp_BankCode;
+        }
+        //if (isset($vnp_Bill_State) && $vnp_Bill_State != "") {
+        //    $inputData['vnp_Bill_State'] = $vnp_Bill_State;
+        //}
+
+        //var_dump($inputData);
+        ksort($inputData);
+        $query = "";
+        $i = 0;
+        $hashdata = "";
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashdata .= urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . "=" . urlencode($value) . '&';
+        }
+
+        $vnp_Url = $vnp_Url . "?" . $query;
+        if (isset($vnp_HashSecret)) {
+            $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret);//
+            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+        }
+        $returnData = array('code' => '00'
+            , 'message' => 'success'
+            , 'data' => $vnp_Url);
+            if (isset($_POST['redirect'])) {
+                //Theem san pham vao Order
+                $userId = Session::get('user')['id'];
+                $user = User::find($userId);
+
+                $allcart = Cart::where('user_id', $userId)->get();
+
+                $lastOrderId = OrderDetail::latest()->pluck('id')->first();
+                $newId = $lastOrderId + 1;
+
+                foreach($allcart as $cart){
+                    $order = new Order;
+                    $order->product_id = $cart['product_id'];
+                    $order->user_id = $cart['user_id'];
+                    $order->quantity = $cart['quantity'];
+                    $order->address = $req->address;
+                    $order->status = 0;
+                    $order->payment_method= "VNPay";
+                    $order->payment_status = "Đã thanh toán";
+                    $order->message = $req->message;
+                    $order->save();
+
+                    $orderDetail = new OrderDetail;
+                    $orderDetail->id = $newId;
+
+                    $orderDetail->order_id = $order->id;
+                    $orderDetail->product_id = $cart->product_id;
+                    $orderDetail->quantity = $cart->quantity;
+                    $orderDetail->status = 0;
+                    $orderDetail->save();
+
+                    $product = Product::find($cart->product_id);
+                    $product->quantity -= $cart->quantity;
+                    $product->save();
+                }
+
+
+                $orderSuccess = "Mua hàng thành công!!!!";
+                Cart::where("user_id", $userId)->delete();
+
+                return redirect()->to($vnp_Url)->with('success',$orderSuccess);
+                //return view($vnp_Url, ['success' => $orderSuccess]);
+            } else {
+                echo json_encode($returnData);
+            }
+    }
+
+
+
+
+
+
+
+
+
 
     function myOrder(){
         $userId = Session::get('user')['id'];
@@ -264,7 +498,7 @@ class ProductController extends Controller
         }
 
         // Update the order detail status to 4 (cancelled)
-        $orderDetail->status = 4;
+        $orderDetail->status = 3;
         $orderDetail->save();
 
         // Refund the product quantity
@@ -274,6 +508,5 @@ class ProductController extends Controller
 
         return redirect()->back()->with('success', 'Order cancelled successfully.');
     }
-
 
 }

@@ -25,7 +25,7 @@
 </style>
 <div class="container">
     <div class="row">
-        <form action="/add_to_cart" method="POST">
+        <form action="/add_to_cart" method="POST" id="addToCartForm">
             <div class="col-sm-6 text-center">
                 <img class="detail-image" src="{{ asset($products['gallery']) }}">
             </div>
@@ -65,15 +65,21 @@
                 <input type="hidden" name="product_id" value="{{$products['id']}}">
                 @csrf
                 <div class="row">
-                    <div class="col-sm-6">
-                        <button class="btn btn-cart"  style="width:250px;height:50px"><i class="glyphicon glyphicon-shopping-cart"></i> Add to Cart</button>
-                    </div>
-                    <div class="col-sm-6">
-                        <a href="/cartlist" class="btn btn-success center-text" style="width: 250px">Buy now</a>
-                    </div>
+                    <button class="btn btn-cart"  style="width:250px;height:50px"><i class="glyphicon glyphicon-shopping-cart"></i> Add to Cart</button>
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="divider">Mô tả sản phẩm</div>
+    </div>
+    <div class="row text-center">
+        <p style="font-size:16px;">
+            {{$products['description']}}
+        </p>
     </div>
 </div>
 
